@@ -22,10 +22,11 @@ session = DBSession()
 @app.route('/restaurants/<int:restaurant_id>/')
 def restaurantMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id = restaurant_id).one()
+    print restaurant.id
+    print restaurant.name
     items = session.query(MenuItem).filter_by(restaurant_id= restaurant.id)
     return render_template('menu.html', restaurant=restaurant, items = items)
-
-
+   
 # Route for newMenuitem
 @app.route('/restaurant/<int:restaurant_id>/new', methods=['GET','POST'])
 def newMenuItem(restaurant_id):
@@ -33,15 +34,29 @@ def newMenuItem(restaurant_id):
        newItem = MenuItem(name = request.form['name'], restaurant_id = restaurant_id)
        session.add(newItem)
        session.commit()
-       return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
+       return redirect(url_for('restaurantMenu', restaurant_id = restaurant_id))
 
     else:
         return render_template('newmenuitem.html', restaurant_id=restaurant_id)
 
 #Route for newEditmenuItem 
-@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/edit/')
+@app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/edit', methods = ['GET', 'POST'])
 def editMenuItem(restaurant_id, menu_id):
-    return "page to edit a menu item. Task 2 complete!"
+    editedItem = session.query(MenuItem).filter_by(id = menu_id).one()
+    restaurant = session.query(Restaurant).filter_by(id =restaurant_id).one()
+    print editedItem.name
+    print editedItem.id
+    print restaurant_id
+    if request.method == 'POST':
+       if request.form['name']:
+           editedItem.name = request.form['name']
+       session.add(editedItem)
+       session.commit()
+       return redirect(url_for('restaurantMenu', restaurant_id=restaurant_id))
+                       
+    else:
+      return render_template('editmenu.html', restaurant_id = restaurant_id, menu_id = menu_id, item = editedItem)                   
+    
 
 #Route for deleteMenuItem 
 @app.route('/restaurant/<int:restaurant_id>/<int:menu_id>/delete/')
